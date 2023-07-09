@@ -16,7 +16,7 @@ because i found rust so fast⚡, secure🔐 and intersint🙄 lang
 
 
 ## views and urls
-`lib.rs` after `handle_connection` function you can handle requests with views and define urls like:
+`lib.rs` after `handle_connection` function you can handle requests with views and defining urls like:
 ```
 if route(buf, "/".to_string() ,Method::GET){
 
