@@ -6,6 +6,7 @@ pub enum Method {
     POST
 }
 
+
 pub fn route(buf:[u8; 1024], url:String, method:Method) -> bool {
     match method {
         Method::GET => {
@@ -29,16 +30,31 @@ pub fn route(buf:[u8; 1024], url:String, method:Method) -> bool {
 
 pub struct Response {
     
-    pub status:String, // return status code
+    pub status: String, // return status code
 
-    pub content:String, // path of html file
+    pub template: String, // path of html file
+                        
+    pub context: Option<HashMap<String,String>>
 
 }
+
+impl Default for Response {
+    fn default() -> Response {
+        Response {
+            status: "".to_string(),
+            
+            template: "".to_string(),
+
+            context: None
+        }
+    }
+}
+
 impl Response {
     
     pub fn create(mut self) -> String{
 
-        let content = fs::read_to_string(&self.content).unwrap();
+        let template = fs::read_to_string(&self.template).unwrap();
         
         if self.status == "200".to_string() {self.status = String::from("200 OK")
         }else if self.status == "201".to_string() {self.status = String::from("201 Created")
@@ -53,8 +69,8 @@ impl Response {
         }
         let res = format!("HTTP/1.1 {}\r\nContent-Length: {}\r\n\r\n{}",
             self.status,
-            content.len(),
-            content
+            template.len(),
+            template
         );
         res
     }
