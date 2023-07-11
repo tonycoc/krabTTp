@@ -22,8 +22,8 @@ if route(buf, "/".to_string() ,Method::GET){
 
                     let response = Response{
                         status:"200".to_string(),
-                        content:"./assets/index.html".to_string(),
-                        
+                        template:format!("./{}/index.html",settings.templates).to_string(),
+                        context: None // context should be Some(HashMap<String,String>)
                     };
 
                                        
@@ -41,6 +41,7 @@ if route(buf, "/info".to_string(), Method::POST) {
                     let response = Response{
                         content:"./assets/info.html".to_string(),
                         status:"200".to_string()
+                        context:None //should be None
                     };
 
                     let post = POST{  //get data from post requst
