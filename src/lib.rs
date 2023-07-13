@@ -28,8 +28,10 @@ pub fn handle_connection(stream:io::Result<TcpStream>){
 
                     let response = Response{
                         status:"200".to_string(),
-                        template:format!("./{}/index.html",settings.templates).to_string(),
-                        context: None // context should be Some(HashMap<String,String>)
+                        template:Some(format!("./{}/index.html",settings.templates).to_string()),
+                        context: Some(HashMap::from([("ip".to_string(),settings.ip)
+                                                    ,("port".to_string(),settings.port
+                                                      )])) // context should be Some(HashMap<String,String>)
 
                         
                     };
@@ -44,7 +46,7 @@ pub fn handle_connection(stream:io::Result<TcpStream>){
                 else {
 
                     let response = Response{
-                        template:format!("./{}/404.html",settings.templates).to_string(),
+                        template:Some(format!("./{}/404.html",settings.templates).to_string()),
                         status:"200".to_string(),
                         context:Some(HashMap::new())
                     };

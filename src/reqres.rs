@@ -1,5 +1,6 @@
 use std::fs;
 use std::collections::HashMap;
+use regex::*;
 
 pub enum Method {
     GET,
@@ -32,7 +33,7 @@ pub struct Response {
     
     pub status: String, // return status code
 
-    pub template: String, // path of html file
+    pub template: Option<String>, // path of html file ,in post request can be None
                         
     pub context: Option<HashMap<String,String>>
 
@@ -43,7 +44,7 @@ impl Default for Response {
         Response {
             status: "".to_string(),
             
-            template: "".to_string(),
+            template: None,
 
             context: None
         }
@@ -53,8 +54,23 @@ impl Default for Response {
 impl Response {
     
     pub fn create(mut self) -> String{
+        
+        let mut template:String = String::new();
 
-        let template = fs::read_to_string(&self.template).unwrap();
+        match self.template {
+            Some(data) => {
+                template = fs::read_to_string(data).unwrap()
+            },
+            None => {}
+        };
+
+        
+        match self.context {
+            Some(data) => {
+               template = back_to_front(template.clone(),data)
+            },
+            None => {}
+        }
         
         if self.status == "200".to_string() {self.status = String::from("200 OK")
         }else if self.status == "201".to_string() {self.status = String::from("201 Created")
@@ -67,6 +83,7 @@ impl Response {
         }else {
             panic!("using not supported status")
         }
+        
         let res = format!("HTTP/1.1 {}\r\nContent-Length: {}\r\n\r\n{}",
             self.status,
             template.len(),
@@ -117,7 +134,7 @@ impl POST {
         
         for (k,v) in dict {
             if key == k {
-                if (k.to_lowercase() == "none" || v.to_lowercase() == "none".to_string()) {
+                if k.to_lowercase() == "none" || v.to_lowercase() == "none".to_string() {
                     panic!("you cant pass none values, instead use Null")
                 }
                 return (k,v)
@@ -127,4 +144,44 @@ impl POST {
         };
         ("None".to_string(),"None".to_string())
     }
+}
+
+
+fn back_to_front(template:String,context:HashMap<String, String>) -> String{
+   
+    let template:&str = template.as_str(); 
+    
+     
+    
+    let re = Regex::new(r"%%(\w+)%%").unwrap();
+
+    let datas: Vec<&str> = re.find_iter(template).map(|m| m.as_str()).collect();
+
+    let mut keys:Vec<&str> = Vec::new();
+    
+    let mut template_s = template.to_string();
+
+    for i in datas{
+        keys.push(i.split("%%").collect::<Vec<&str>>()[1])
+    };
+    
+        
+    for key in keys {
+
+        match context.get(key) {
+            
+            Some(data) => {
+                
+                let ind = template_s.find(format!("%%{}%%",key).as_str()).unwrap();
+
+                template_s.replace_range(ind..ind+key.len()+4, data);
+ 
+            },
+            None => {}
+        }
+    }
+
+    template_s
+    //println!("{}",template)
+
 }
